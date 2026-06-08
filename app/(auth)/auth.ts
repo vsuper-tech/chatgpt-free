@@ -46,31 +46,14 @@ export const {
         const email = String(credentials.email ?? "");
         const password = String(credentials.password ?? "");
         const users = await getUser(email);
-        if (users.length === 0) {
-          await compare(password, DUMMY_PASSWORD);
-          return null;
-        }
+        if (users.length === 0) return null;
         const [user] = users;
-        if (!user.password) {
-          await compare(password, DUMMY_PASSWORD);
-          return null;
-        }
+        if (!user.password) return null;
         const passwordsMatch = await compare(password, user.password);
-        if (!passwordsMatch) {
-          return null;
-        }
+        if (!passwordsMatch) return null;
         return { ...user, type: "regular" };
       },
     }),
-    // Tạm tắt Guest Provider để app chạy được
-    // Credentials({
-    //   id: "guest",
-    //   credentials: {},
-    //   async authorize() {
-    //     const [guestUser] = await createGuestUser();
-    //     return { ...guestUser, type: "guest" };
-    //   },
-    // }),
   ],
   callbacks: {
     jwt({ token, user }) {
