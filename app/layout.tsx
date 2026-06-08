@@ -24,8 +24,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function SidebarShell({ children }: { children: React.ReactNode }) {
-  // Tạm tắt auth để tránh redirect loop
-  const user = undefined;   // ← Sửa từ null thành undefined
+  const user = undefined;
 
   return (
     <SidebarProvider defaultOpen={true}>
