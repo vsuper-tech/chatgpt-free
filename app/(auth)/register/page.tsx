@@ -9,6 +9,9 @@ import { SubmitButton } from "@/components/chat/submit-button";
 import { toast } from "@/components/chat/toast";
 import { type RegisterActionState, register } from "../actions";
 
+// Force dynamic rendering để tránh lỗi prerender
+export const dynamic = "force-dynamic";
+
 export default function Page() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -19,7 +22,9 @@ export default function Page() {
     { status: "idle" }
   );
 
-  const { update: updateSession } = useSession();
+  // Safely get updateSession
+  const session = useSession();
+  const updateSession = session?.update;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: router and updateSession are stable refs
   useEffect(() => {
@@ -35,10 +40,14 @@ export default function Page() {
     } else if (state.status === "success") {
       toast({ type: "success", description: "Account created!" });
       setIsSuccessful(true);
-      updateSession();
+
+      // Chỉ gọi updateSession nếu tồn tại
+      if (updateSession) {
+        updateSession();
+      }
       router.refresh();
     }
-  }, [state.status]);
+  }, [state.status, updateSession, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
