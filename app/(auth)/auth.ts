@@ -3,7 +3,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { createGuestUser, getUser } from "@/lib/db/queries";
+import { getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
 
 export type UserType = "guest" | "regular";
@@ -15,7 +15,6 @@ declare module "next-auth" {
       type: UserType;
     } & DefaultSession["user"];
   }
-
   interface User {
     id?: string;
     email?: string | null;
@@ -47,36 +46,31 @@ export const {
         const email = String(credentials.email ?? "");
         const password = String(credentials.password ?? "");
         const users = await getUser(email);
-
         if (users.length === 0) {
           await compare(password, DUMMY_PASSWORD);
           return null;
         }
-
         const [user] = users;
-
         if (!user.password) {
           await compare(password, DUMMY_PASSWORD);
           return null;
         }
-
         const passwordsMatch = await compare(password, user.password);
-
         if (!passwordsMatch) {
           return null;
         }
-
         return { ...user, type: "regular" };
       },
     }),
-    Credentials({
-      id: "guest",
-      credentials: {},
-      async authorize() {
-        const [guestUser] = await createGuestUser();
-        return { ...guestUser, type: "guest" };
-      },
-    }),
+    // Tạm tắt Guest Provider để app chạy được
+    // Credentials({
+    //   id: "guest",
+    //   credentials: {},
+    //   async authorize() {
+    //     const [guestUser] = await createGuestUser();
+    //     return { ...guestUser, type: "guest" };
+    //   },
+    // }),
   ],
   callbacks: {
     jwt({ token, user }) {
@@ -84,7 +78,6 @@ export const {
         token.id = user.id as string;
         token.type = user.type;
       }
-
       return token;
     },
     session({ session, token }) {
@@ -92,7 +85,6 @@ export const {
         session.user.id = token.id;
         session.user.type = token.type;
       }
-
       return session;
     },
   },
