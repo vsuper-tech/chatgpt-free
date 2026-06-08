@@ -1,18 +1,14 @@
 import { redirect } from 'next/navigation';
+import { auth } from '../auth';
 
-export default function LoginPage() {
-  // Tạm redirect thẳng vào chat để test
-  redirect('/chat');
-  
-  // Nếu bạn muốn giữ trang login sau này, dùng code dưới:
-  /*
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Đăng nhập</h1>
-        <p>Đang phát triển...</p>
-      </div>
-    </div>
-  );
-  */
+export default async function LoginPage() {
+  const session = await auth();
+
+  // Nếu đã có session → chuyển thẳng vào chat
+  if (session?.user) {
+    redirect('/chat');
+  }
+
+  // Nếu chưa login → hiển thị trang login (hoặc redirect guest)
+  redirect('/api/auth/guest?redirectUrl=/chat');
 }
