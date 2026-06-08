@@ -8,11 +8,12 @@ import { AuthForm } from "@/components/chat/auth-form";
 import { SubmitButton } from "@/components/chat/submit-button";
 import { toast } from "@/components/chat/toast";
 import { type RegisterActionState, register } from "../actions";
-
-// Force dynamic rendering để tránh lỗi prerender
-export const dynamic = "force-dynamic";
+import { unstable_noStore as noStore } from "next/cache";
 
 export default function Page() {
+  // Buộc dynamic rendering bằng noStore()
+  noStore();
+
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
@@ -22,7 +23,6 @@ export default function Page() {
     { status: "idle" }
   );
 
-  // Safely get updateSession
   const session = useSession();
   const updateSession = session?.update;
 
@@ -41,7 +41,6 @@ export default function Page() {
       toast({ type: "success", description: "Account created!" });
       setIsSuccessful(true);
 
-      // Chỉ gọi updateSession nếu tồn tại
       if (updateSession) {
         updateSession();
       }
