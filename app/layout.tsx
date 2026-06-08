@@ -1,45 +1,51 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import "./globals.css";
+import Script from "next/script";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+import { AppSidebar } from "@/components/chat/app-sidebar";
+import { DataStreamProvider } from "@/components/chat/data-stream-provider";
+import { ChatShell } from "@/components/chat/shell";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ActiveChatProvider } from "@/hooks/use-active-chat";
 
-export const metadata: Metadata = {
-  title: "ChatGPT Free",
-  description: "Chatbot AI miễn phí",
-};
-
-const geist = Geist({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist-mono",
-});
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <>
+      <Script
+        src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
+        strategy="lazyOnload"
+      />
+      <DataStreamProvider>
+        <Suspense fallback={<div className="flex h-dvh bg-sidebar" />}>
+          <SidebarShell>{children}</SidebarShell>
+        </Suspense>
+      </DataStreamProvider>
+    </>
+  );
+}
+
+function SidebarShell({ children }: { children: React.ReactNode }) {
+  // Tạm tắt auth để tránh redirect loop
+  const user = null;
+
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar user={user} />
+      <SidebarInset>
+        <Toaster
+          position="top-center"
+          theme="system"
+          toastOptions={{
+            className:
+              "!bg-card !text-foreground !border-border/50 !shadow-[var(--shadow-float)]",
+          }}
+        />
+        <Suspense fallback={<div className="flex h-dvh" />}>
+          <ActiveChatProvider>
+            <ChatShell />
+          </ActiveChatProvider>
+        </Suspense>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
