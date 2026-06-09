@@ -1,42 +1,25 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import "./globals.css";
+import Script from "next/script";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
+import { ChatShell } from "@/components/chat/shell";
+import { ActiveChatProvider } from "@/hooks/use-active-chat";
 
-export const metadata: Metadata = {
-  title: "ChatGPT Free",
-  description: "Chatbot AI miễn phí",
-};
-
-const geist = Geist({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist-mono",
-});
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+    <>
+      <Script
+        src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
+        strategy="lazyOnload"
+      />
+      <Suspense fallback={<div className="flex h-dvh bg-black" />}>
+        <div className="flex h-dvh">
+          <ActiveChatProvider>
+            <ChatShell />
+          </ActiveChatProvider>
           {children}
-        </ThemeProvider>
-      </body>
-    </html>
+        </div>
+      </Suspense>
+      <Toaster position="top-center" />
+    </>
   );
 }
